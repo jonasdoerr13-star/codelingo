@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CodeLingo</title>
+    <!-- Google Fonts für den Duolingo-Look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Duolingo Farbpalette in Tailwind laden
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Nunito', 'sans-serif'] },
+                    colors: {
+                        duo: {
+                            bg: '#131F24',        // Hintergrund Dunkelmodus
+                            card: '#202F36',      // Karten/Boxen
+                            green: '#58CC02',     // Duolingo Grün
+                            greenDark: '#46A302', // Schatten für Grün
+                            blue: '#1CB0F6',      // Duolingo Blau
+                            blueDark: '#1899D6',
+                            red: '#FF4B4B',       // Herzen
+                            gray: '#37464F',      // Inaktive Pfade
+                            text: '#F1F7FB',      // Haupttext
+                            subtext: '#8B9BA5'    // Grauer Text
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Der berühmte 3D-Button-Effekt von Duolingo */
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0 4px 0 0 var(--shadow-color);
+            transform: translateY(0);
+        }
+        .btn-3d:active {
+            box-shadow: 0 0 0 0 var(--shadow-color);
+            transform: translateY(4px);
+        }
+        
+        /* Ausblenden der Scrollbar für sauberen Look */
+        ::-webkit-scrollbar { display: none; }
+
+        /* Screens Management */
+        .screen { display: none; height: 100vh; flex-direction: column; }
+        .screen.active { display: flex; }
+
+        /* Gewundener Pfad */
+        .path-node { margin-bottom: 1.5rem; position: relative; }
+        .path-node.left { transform: translateX(-40px); }
+        .path-node.right { transform: translateX(40px); }
+        .path-node.center { transform: translateX(0); }
+    </style>
+</head>
+<body class="bg-duo-bg text-duo-text font-sans h-screen w-screen overflow-hidden flex justify-center select-none">
+
+    <!-- ========================================== -->
+    <!-- SCREEN 1: ONBOARDING                       -->
+    <!-- ========================================== -->
+    <div id="screen-onboarding" class="screen active w-full max-w-md p-6 items-center justify-center">
+        <div class="text-7xl mb-8 animate-bounce">🦉</div>
+        <h1 class="text-3xl font-extrabold mb-2 text-center">Willkommen bei CodeLingo</h1>
+        <p class="text-duo-subtext mb-8 text-center font-bold">Lerne die Sprache der Zukunft.</p>
+
+        <div class="w-full">
+            <label class="text-sm font-bold text-duo-subtext mb-1 block uppercase">Benutzername</label>
+            <input type="text" id="input-username" placeholder="z.B. Lin" class="w-full bg-duo-card p-4 rounded-xl mb-4 font-bold outline-none border-2 border-transparent focus:border-duo-blue text-lg">
+            
+            <label class="text-sm font-bold text-duo-subtext mb-1 block uppercase">Was willst du lernen?</label>
+            <select id="input-language" class="w-full bg-duo-card p-4 rounded-xl mb-8 font-bold outline-none border-2 border-transparent focus:border-duo-blue text-lg appearance-none">
+                <option value="Python">Python 🐍</option>
+                <option value="JavaScript">JavaScript ⚡</option>
+                <option value="C++">C++ ⚙️</option>
+                <option value="Spanisch">Spanisch 🇪🇸</option>
+            </select>
+
+            <button onclick="registerUser()" class="w-full bg-duo-green text-white font-extrabold text-lg py-4 rounded-2xl btn-3d" style="--shadow-color: #46A302;">
+                LOS GEHT'S
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 2: HAUPT-APP (DER PFAD)             -->
+    <!-- ========================================== -->
+    <div id="screen-main" class="screen w-full max-w-md bg-duo-bg">
+        <!-- Top Bar -->
+        <header class="px-4 py-4 flex justify-between items-center bg-duo-bg z-10">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🇪🇸</span>
+                <div class="w-32 h-4 bg-duo-gray rounded-full overflow-hidden">
+                    <div class="w-1/3 h-full bg-duo-green rounded-full"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1 text-duo-red font-extrabold text-lg">
+                    <span id="heart-icon">❤️</span>
+                    <span id="heart-count">5</span>
+                </div>
+                <button onclick="openProfile()" id="avatar-btn" class="w-10 h-10 bg-duo-blue text-white rounded-full flex items-center justify-center font-extrabold border-2 border-[#1899D6]">
+                    L
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollbarer Lernpfad -->
+        <main class="flex-1 overflow-y-auto pb-24 px-4 flex flex-col items-center">
+            
+            <!-- Abschnitts-Header -->
+            <div class="w-full bg-duo-green text-white p-4 rounded-2xl mb-10 mt-4 shadow-[0_4px_0_0_#46A302] flex justify-between items-center">
+                <div>
+                    <h2 class="font-extrabold text-sm uppercase opacity-90">Stufe 1, Abschnitt 1</h2>
+                    <h1 id="lesson-title" class="font-extrabold text-lg">Einführung in die Sprache</h1>
+                </div>
+                <span class="text-2xl">📋</span>
+            </div>
+
+            <!-- Der Pfad -->
+            <div class="flex flex-col items-center w-full relative">
+                <!-- Fake Charakter -->
+                <div class="absolute right-0 top-20 text-6xl opacity-50 z-0">🦉</div>
+                
+                <!-- Node 1 (Aktiv) -->
+                <div class="path-node center z-10">
+                    <div class="w-24 h-20 bg-duo-green rounded-full flex items-center justify-center shadow-[0_8px_0_0_#46A302] cursor-pointer hover:brightness-110">
+                        <span class="text-4xl text-white">★</span>
+                    </div>
+                </div>
+
+                <!-- Node 2 (Inaktiv) -->
+                <div class="path-node left">
+                    <div class="w-20 h-16 bg-duo-gray rounded-full flex items-center justify-center shadow-[0_8px_0_0_#2b3940]">
+                        <span class="text-2xl opacity-50">📖</span>
+                    </div>
+                </div>
+
+                <!-- Node 3 (Inaktiv) -->
+                <div class="path-node right">
+                    <div class="w-20 h-16 bg-duo-gray rounded-full flex items-center justify-center shadow-[0_8px_0_0_#2b3940]">
+                        <span class="text-2xl opacity-50">🎧</span>
+                    </div>
+                </div>
+                 <!-- Node 4 (Truhe) -->
+                 <div class="path-node center">
+                    <div class="w-20 h-16 bg-duo-gray rounded-full flex items-center justify-center shadow-[0_8px_0_0_#2b3940]">
+                        <span class="text-2xl opacity-50">💼</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 3: PROFIL (Slides up)               -->
+    <!-- ========================================== -->
+    <div id="screen-profile" class="screen absolute inset-0 bg-duo-bg z-40 w-full max-w-md mx-auto transition-transform transform translate-y-full duration-300">
+        <header class="px-4 py-4 flex justify-between items-center">
+            <h2 class="text-2xl font-extrabold">Profil</h2>
+            <button onclick="closeProfile()" class="text-duo-subtext font-bold px-4 py-2 hover:bg-duo-card rounded-xl transition">Schließen</button>
+        </header>
+        
+        <div class="flex-1 px-6 overflow-y-auto flex flex-col">
+            <!-- Profil Header -->
+            <div class="flex items-center gap-4 mb-8 mt-4">
+                <div class="w-20 h-20 bg-duo-blue rounded-full flex items-center justify-center text-3xl font-extrabold text-white border-4 border-[#1899D6]">
+                    L
+                </div>
+                <div>
+                    <h3 id="profile-username" class="text-2xl font-extrabold">Lin</h3>
+                    <p class="text-duo-subtext font-bold">Lernt <span id="profile-language" class="text-duo-blue">Python</span></p>
+                </div>
+            </div>
+
+            <!-- Statistiken -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-duo-card p-4 rounded-2xl border-2 border-[#2b3940]">
+                    <p class="text-duo-red text-2xl mb-1">❤️</p>
+                    <p class="font-extrabold text-xl" id="profile-hearts">5</p>
+                    <p class="text-duo-subtext font-bold text-sm">Herzen</p>
+                </div>
+                <div class="bg-duo-card p-4 rounded-2xl border-2 border-[#2b3940]">
+                    <p class="text-orange-500 text-2xl mb-1">🔥</p>
+                    <p class="font-extrabold text-xl">4</p>
+                    <p class="text-duo-subtext font-bold text-sm">Streak</p>
+                </div>
+            </div>
+
+            <!-- ZAHNRAD (Ganz unten) -->
+            <div class="mt-auto py-10 flex justify-center">
+                <button onclick="openCodeModal()" class="text-duo-gray hover:text-duo-text transition-colors p-4 rounded-full bg-duo-card">
+                    <!-- SVG Zahnrad -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL 1: GEHEIMCODE EINGEBEN               -->
+    <!-- ========================================== -->
+    <div id="modal-code" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="bg-duo-card p-8 rounded-3xl w-full max-w-sm border-2 border-[#2b3940] shadow-2xl">
+            <h2 class="text-2xl font-extrabold mb-6 text-center">Code eingeben</h2>
+            <input type="password" id="input-secret-code" placeholder="****" class="w-full bg-duo-bg text-center text-3xl font-extrabold tracking-[0.5em] p-4 rounded-xl mb-6 outline-none border-2 border-transparent focus:border-duo-green transition-colors">
+            
+            <button onclick="checkSecretCode()" class="w-full bg-duo-green text-white font-extrabold text-lg py-4 rounded-2xl btn-3d mb-4" style="--shadow-color: #46A302;">
+                BESTÄTIGEN
+            </button>
+            
+            <p id="code-error" class="text-duo-red text-center font-bold text-sm hidden mb-4">Falscher Code!</p>
+            
+            <button onclick="closeCodeModal()" class="w-full text-duo-subtext font-bold text-lg py-2 hover:text-white transition">Abbrechen</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL 2: ADMIN PANEL (Nur mit Code Z4WA)   -->
+    <!-- ========================================== -->
+    <div id="modal-admin" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4">
+        <div class="bg-duo-bg p-8 rounded-3xl w-full max-w-sm border-4 border-duo-red shadow-[0_0_30px_rgba(255,75,75,0.3)]">
+            <div class="flex items-center gap-2 text-duo-red mb-8 justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <h2 class="text-2xl font-extrabold uppercase tracking-wide">Admin Panel</h2>
+            </div>
+            
+            <label class="text-xs font-bold text-duo-subtext mb-1 block uppercase">Benutzername (Muss existieren)</label>
+            <input type="text" id="admin-target-user" placeholder="z.B. Lin" class="w-full bg-duo-card p-4 font-bold rounded-xl outline-none mb-4 border-2 border-transparent focus:border-duo-red transition-colors">
+            
+            <label class="text-xs font-bold text-duo-subtext mb-1 block uppercase">Dauer (in Tagen)</label>
+            <input type="number" id="admin-duration" value="7" min="1" class="w-full bg-duo-card p-4 font-bold rounded-xl outline-none mb-8 border-2 border-transparent focus:border-duo-red transition-colors">
+            
+            <button onclick="giveSuperStatus()" class="w-full bg-duo-red text-white font-extrabold text-lg py-4 rounded-2xl btn-3d mb-4" style="--shadow-color: #B33333;">
+                SUPER-STATUS VERGEBEN
+            </button>
+            
+            <p id="admin-message" class="text-duo-green text-center font-bold text-sm hidden mb-4"></p>
+            
+            <button onclick="closeAdminModal()" class="w-full text-duo-subtext font-bold text-lg py-2 hover:text-white transition">Admin-Modus beenden</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIK                           -->
+    <!-- ========================================== -->
+    <script>
+        // "Datenbank" im Browser-Speicher
+        let database = JSON.parse(localStorage.getItem('codelingo_users')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('codelingo_current_user')) || null;
+
+        const SECRET_CODE = "Z4WA"; // Dein geheimer Code
+
+        function init() {
+            if (currentUser) {
+                showScreen('screen-main');
+                updateUI();
+            } else {
+                showScreen('screen-onboarding');
+            }
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active');
+                if(screenId !== 'screen-profile') {
+                    s.style.transform = 'translateY(0)';
+                }
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            // Profil-Animation (Slide up)
+            if (screenId === 'screen-profile') {
+                const profile = document.getElementById('screen-profile');
+                setTimeout(() => profile.style.transform = 'translateY(0)', 10);
+            }
+        }
+
+        function registerUser() {
+            const username = document.getElementById('input-username').value.trim();
+            const language = document.getElementById('input-language').value;
+
+            if (!username) return alert("Bitte gib einen Benutzernamen ein!");
+
+            if (database.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+                return alert("Dieser Benutzername ist bereits vergeben!");
+            }
+
+            const newUser = {
+                username: username,
+                language: language,
+                hearts: 5,
+                superUntil: null
+            };
+
+            database.push(newUser);
+            saveDB();
+
+            currentUser = newUser;
+            saveCurrentUser();
+
+            showScreen('screen-main');
+            updateUI();
+        }
+
+        function updateUI() {
+            if (!currentUser) return;
+
+            // Avatar Buchstabe (Großbuchstabe)
+            document.getElementById('avatar-btn').innerText = currentUser.username[0].toUpperCase();
+            
+            // Titel anpassen
+            document.getElementById('lesson-title').innerText = `Einführung in ${currentUser.language}`;
+
+            // Herzen prüfen (Unendlich oder normal)
+            const now = new Date().getTime();
+            const isSuper = currentUser.superUntil && currentUser.superUntil > now;
+            
+            if (isSuper) {
+                document.getElementById('heart-count').innerText = "∞";
+                document.getElementById('heart-icon').classList.add('animate-pulse');
+                document.getElementById('profile-hearts').innerText = "∞";
+            } else {
+                document.getElementById('heart-count').innerText = currentUser.hearts;
+                document.getElementById('heart-icon').classList.remove('animate-pulse');
+                document.getElementById('profile-hearts').innerText = currentUser.hearts;
+            }
+        }
+
+        function openProfile() {
+            if(!currentUser) return;
+            document.getElementById('profile-username').innerText = currentUser.username;
+            document.getElementById('profile-language').innerText = currentUser.language;
+            document.getElementById('screen-profile').classList.add('active');
+            // Slide Animation triggern
+            setTimeout(() => document.getElementById('screen-profile').style.transform = 'translateY(0)', 10);
+        }
+
+        function closeProfile() {
+            const profile = document.getElementById('screen-profile');
+            profile.style.transform = 'translateY(100%)';
+            setTimeout(() => profile.classList.remove('active'), 300);
+        }
+
+        // --- Geheimcode & Admin Logik ---
+        function openCodeModal() {
+            document.getElementById('modal-code').classList.remove('hidden');
+            document.getElementById('modal-code').classList.add('flex');
+            document.getElementById('input-secret-code').value = "";
+            document.getElementById('code-error').classList.add('hidden');
+        }
+
+        function closeCodeModal() {
+            document.getElementById('modal-code').classList.add('hidden');
+            document.getElementById('modal-code').classList.remove('flex');
+        }
+
+        function checkSecretCode() {
+            const input = document.getElementById('input-secret-code').value;
+
+            if (input === SECRET_CODE) {
+                // User für 7 Tage Super geben
+                const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                currentUser.superUntil = new Date().getTime() + oneWeek;
+                
+                updateUserInDB();
+                updateUI();
+                closeCodeModal();
+                closeProfile();
+                
+                // Admin Panel öffnen
+                document.getElementById('modal-admin').classList.remove('hidden');
+                document.getElementById('modal-admin').classList.add('flex');
+                document.getElementById('admin-message').classList.add('hidden');
+            } else {
+                document.getElementById('code-error').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('modal-admin').classList.add('hidden');
+            document.getElementById('modal-admin').classList.remove('flex');
+        }
+
+        function giveSuperStatus() {
+            const targetName = document.getElementById('admin-target-user').value.trim();
+            const days = parseInt(document.getElementById('admin-duration').value);
+            const msgEl = document.getElementById('admin-message');
+
+            if (!targetName || isNaN(days) || days < 1) {
+                msgEl.innerText = "Bitte Name und gültige Tage eingeben!";
+                msgEl.className = "text-duo-red text-center font-bold text-sm block mb-4";
+                return;
+            }
+
+            const userIndex = database.findIndex(u => u.username.toLowerCase() === targetName.toLowerCase());
+
+            if (userIndex === -1) {
+                msgEl.innerText = `User "${targetName}" nicht gefunden!`;
+                msgEl.className = "text-duo-red text-center font-bold text-sm block mb-4";
+            } else {
+                const ms = days * 24 * 60 * 60 * 1000;
+                database[userIndex].superUntil = new Date().getTime() + ms;
+                
+                // Wenn Admin sich selbst updated
+                if (database[userIndex].username === currentUser.username) {
+                    currentUser = database[userIndex];
+                    saveCurrentUser();
+                    updateUI();
+                }
+                
+                saveDB();
+                msgEl.innerText = `Erfolg! ${targetName} hat für ${days} Tage unendlich Herzen.`;
+                msgEl.className = "text-duo-green text-center font-bold text-sm block mb-4";
+                document.getElementById('admin-target-user').value = "";
+            }
+        }
+
+        // Hilfsfunktionen (LocalStorage)
+        function saveDB() { localStorage.setItem('codelingo_users', JSON.stringify(database)); }
+        function saveCurrentUser() { localStorage.setItem('codelingo_current_user', JSON.stringify(currentUser)); }
+        function updateUserInDB() {
+            const index = database.findIndex(u => u.username === currentUser.username);
+            if (index !== -1) {
+                database[index] = currentUser;
+                saveDB();
+                saveCurrentUser();
+            }
+        }
+
+        // App Starten
+        init();
+    </script>
+</body>
+</html>

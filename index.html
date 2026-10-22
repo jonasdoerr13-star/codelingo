@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CodeL ingo -1:1 Prototyp</title>
+    <!-- Schriftart & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Nunito', 'sans-serif'] },
+                    colors: {
+                        duo: {
+                            bg: '#131F24', card: '#202F36', green: '#58CC02', greenDark: '#46A302',
+                            blue: '#1CB0F6', blueDark: '#1899D6', red: '#FF4B4B', redDark: '#EA2B2B',
+                            yellow: '#FFC800', gray: '#37464F', text: '#F1F7FB', subtext: '#8B9BA5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 3D Button Effekt */
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0 4px 0 0 var(--shadow-color);
+            transform: translateY(0);
+        }
+        .btn-3d:active {
+            box-shadow: 0 0 0 0 var(--shadow-color);
+            transform: translateY(4px);
+        }
+        /* Scrollbar verstecken */
+        ::-webkit-scrollbar { display: none; }
+        
+        /* Screens */
+        .screen { display: none; height: 100vh; overflow-y: auto; }
+        .screen.active { display: block; }
+
+        /* Pfad-Layout */
+        .path-container { position: relative; padding-bottom: 100px; max-width: 500px; margin: 0 auto; }
+        .path-node { display: flex; justify-content: center; margin-bottom: 2rem; position: relative; z-index: 10; }
+        .path-node.left { padding-right: 120px; }
+        .path-node.right { padding-left: 120px; }
+        
+        /* Linien im Hintergrund (Fake) */
+        .path-line { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 10px; background-color: #37464F; z-index: 0; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-duo-bg text-duo-text font-sans h-screen w-screen overflow-hidden flex justify-center">
+
+    <!-- ================= DESKTOP SIDEBAR ================= -->
+    <aside class="hidden md:flex flex-col w-64 border-r-2 border-[#2b3940] p-6 h-full z-50">
+        <div class="text-3xl font-extrabold text-duo-green mb-10 tracking-tight">codelingo</div>
+        <nav class="flex flex-col gap-4 font-extrabold text-lg text-duo-subtext">
+            <a href="#" class="flex items-center gap-4 text-duo-blue bg-[#202F36] p-3 rounded-xl border-2 border-duo-blue"><i class="fa-solid fa-house"></i> Lernen</a>
+            <a href="#" class="flex items-center gap-4 p-3 hover:bg-[#202F36] rounded-xl transition"><i class="fa-solid fa-trophy"></i> Rangliste</a>
+            <a href="#" class="flex items-center gap-4 p-3 hover:bg-[#202F36] rounded-xl transition"><i class="fa-solid fa-shield-halved"></i> Quests</a>
+            <a href="#" class="flex items-center gap-4 p-3 hover:bg-[#202F36] rounded-xl transition"><i class="fa-solid fa-store"></i> Shop</a>
+            <a href="#" onclick="openProfile()" class="flex items-center gap-4 p-3 hover:bg-[#202F36] rounded-xl transition"><i class="fa-solid fa-user"></i> Profil</a>
+        </nav>
+    </aside>
+
+    <!-- ================= MAIN CONTENT AREA ================= -->
+    <main class="w-full max-w-2xl h-full relative flex flex-col bg-duo-bg">
+        
+        <!-- TOP BAR -->
+        <header class="px-4 py-4 flex justify-between items-center bg-duo-bg sticky top-0 z-40 border-b-2 border-[#2b3940] md:border-none">
+            <div class="flex items-center gap-2 md:hidden">
+                <span class="text-2xl">🇪🇸</span>
+            </div>
+            
+            <div class="flex items-center gap-4 font-extrabold text-lg ml-auto">
+                <div class="flex items-center gap-1 text-orange-500"><i class="fa-solid fa-fire"></i> 4</div>
+                <div class="flex items-center gap-1 text-duo-blue"><i class="fa-solid fa-gem"></i> 500</div>
+                <div class="flex items-center gap-1 text-duo-red"><i class="fa-solid fa-heart"></i> <span id="top-hearts">5</span></div>
+            </div>
+        </header>
+
+        <!-- SCREEN 1: HOME / LERNPFAD -->
+        <div id="screen-home" class="screen active px-4">
+            <div class="path-container mt-6">
+                
+                <!-- Abschnitts-Banner -->
+                <div class="bg-duo-green text-white p-4 rounded-2xl mb-8 shadow-[0_4px_0_0_#46A302] flex justify-between items-center sticky top-20 z-30">
+                    <div>
+                        <h2 class="font-extrabold text-sm uppercase opacity-90">Sektion 1, Einheit 1</h2>
+                        <h1 class="font-extrabold text-lg" id="course-title">Python Basics</h1>
+                    </div>
+                    <button class="bg-green-600 p-2 rounded-lg"><i class="fa-solid fa-book-open"></i></button>
+                </div>
+
+                <!-- Der Pfad -->
+                <div class="path-line"></div>
+
+                <!-- Node 1 -->
+                <div class="path-node center mt-10">
+                    <div class="relative group cursor-pointer" onclick="startLesson()">
+                        <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-duo-green font-extrabold px-4 py-2 rounded-xl border-2 border-gray-200 shadow-lg animate-bounce z-20">START</div>
+                        <div class="w-24 h-20 bg-duo-green rounded-[50%] flex items-center justify-center shadow-[0_8px_0_0_#46A302] btn-3d" style="--shadow-color: #46A302;">
+                            <i class="fa-solid fa-star text-4xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Node 2 -->
+                <div class="path-node right mt-8">
+                    <div class="w-20 h-16 bg-duo-green rounded-[50%] flex items-center justify-center shadow-[0_8px_0_0_#46A302] cursor-pointer hover:brightness-110">
+                        <i class="fa-solid fa-star text-2xl text-white"></i>
+                    </div>
+                </div>
+
+                <!-- Node 3 (Truhe) -->
+                <div class="path-node left mt-8">
+                    <div class="w-20 h-16 bg-duo-yellow rounded-[50%] flex items-center justify-center shadow-[0_8px_0_0_#D1A100] cursor-pointer">
+                        <i class="fa-solid fa-box text-2xl text-white"></i>
+                    </div>
+                </div>
+
+                <!-- Node 4 (Inaktiv) -->
+                <div class="path-node right mt-8">
+                    <div class="w-20 h-16 bg-duo-gray rounded-[50%] flex items-center justify-center shadow-[0_8px_0_0_#2b3940]">
+                        <i class="fa-solid fa-star text-2xl text-[#2b3940]"></i>
+                    </div>
+                </div>
+                
+                <!-- Fake Charakter -->
+                <div class="absolute right-4 top-1/3 text-7xl opacity-20 z-0"><i class="fa-solid fa-ghost"></i></div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: PROFIL -->
+        <div id="screen-profile" class="screen px-4 pt-6 pb-20">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-extrabold">Profil</h2>
+                <button onclick="closeProfile()" class="text-duo-subtext font-extrabold text-lg hover:bg-duo-card p-2 rounded-xl transition">Schließen</button>
+            </div>
+            
+            <div class="flex flex-col items-center mb-8">
+                <div id="profile-avatar" class="w-24 h-24 bg-duo-blue rounded-full flex items-center justify-center text-4xl font-extrabold border-4 border-[#1899D6] mb-4 shadow-lg">L</div>
+                <h3 id="profile-name" class="text-2xl font-extrabold">Lin</h3>
+                <p class="text-duo-subtext font-bold" id="profile-join-date">Beigetreten im Oktober 2023</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-duo-card border-2 border-[#2b3940] p-4 rounded-2xl flex flex-col items-center">
+                    <i class="fa-solid fa-fire text-orange-500 text-3xl mb-2"></i>
+                    <span class="font-extrabold text-xl">4</span>
+                    <span class="text-duo-subtext font-bold text-sm">Streak</span>
+                </div>
+                <div class="bg-duo-card border-2 border-[#2b3940] p-4 rounded-2xl flex flex-col items-center">
+                    <i class="fa-solid fa-bolt text-yellow-500 text-3xl mb-2"></i>
+                    <span class="font-extrabold text-xl">150</span>
+                    <span class="text-duo-subtext font-bold text-sm">Gesamt-XP</span>
+                </div>
+                <div class="bg-duo-card border-2 border-[#2b3940] p-4 rounded-2xl flex flex-col items-center">
+                    <i class="fa-solid fa-heart text-duo-red text-3xl mb-2"></i>
+                    <span class="font-extrabold text-xl" id="profile-hearts-text">5</span>
+                    <span class="text-duo-subtext font-bold text-sm">Herzen</span>
+                </div>
+                <div class="bg-duo-card border-2 border-[#2b3940] p-4 rounded-2xl flex flex-col items-center">
+                    <i class="fa-solid fa-gem text-duo-blue text-3xl mb-2"></i>
+                    <span class="font-extrabold text-xl">500</span>
+                    <span class="text-duo-subtext font-bold text-sm">Edelsteine</span>
+                </div>
+            </div>
+
+            <!-- EINSTELLUNGEN / ZAHNRAD -->
+            <div class="border-t-2 border-[#2b3940] pt-8 pb-10 flex justify-center mt-10">
+                <button onclick="openSettingsModal()" class="bg-duo-card p-4 rounded-full text-duo-subtext hover:text-white transition-colors border-2 border-[#2b3940]">
+                    <i class="fa-solid fa-gear text-3xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: AKTIVE LEKTION (QUIZ) -->
+        <div id="screen-lesson" class="screen bg-duo-bg flex-col h-full absolute inset-0 z-50">
+            <!-- Header der Lektion -->
+            <header class="px-4 py-6 flex items-center gap-4 border-b-2 border-[#2b3940]">
+                <button onclick="quitLesson()" class="text-duo-subtext hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                <div class="flex-1 h-4 bg-duo-gray rounded-full overflow-hidden">
+                    <div id="lesson-progress" class="h-full bg-duo-green w-1/3 transition-all duration-300 rounded-full"></div>
+                </div>
+                <div class="flex items-center gap-1 text-duo-red font-extrabold text-xl">
+                    <i class="fa-solid fa-heart"></i> <span id="lesson-hearts">5</span>
+                </div>
+            </header>
+
+            <!-- Quiz Bereich -->
+            <main class="flex-1 p-6 flex flex-col max-w-xl mx-auto w-full">
+                <h2 class="text-2xl font-extrabold mb-8" id="question-text">Welche Sprache wird hauptsächlich für Web-Frontend-Entwicklung genutzt?</h2>
+                
+                <div class="flex flex-col gap-4" id="options-container">
+                    <!-- Optionen werden per JS geladen -->
+                </div>
+            </main>
+
+            <!-- Footer der Lektion -->
+            <footer class="p-6 border-t-2 border-[#2b3940] bg-duo-bg">
+                <button id="check-btn" onclick="checkAnswer()" class="w-full bg-duo-green text-white font-extrabold text-lg py-4 rounded-2xl btn-3d opacity-50 cursor-not-allowed" style="--shadow-color: #46A302;" disabled>PRÜFEN</button>
+            </footer>
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="md:hidden absolute bottom-0 w-full bg-duo-bg border-t-2 border-[#2b3940] flex justify-around py-3 z-40">
+            <a href="#" class="text-duo-blue text-2xl"><i class="fa-solid fa-house"></i></a>
+            <a href="#" class="text-duo-subtext text-2xl"><i class="fa-solid fa-trophy"></i></a>
+            <a href="#" class="text-duo-subtext text-2xl"><i class="fa-solid fa-shield-halved"></i></a>
+            <a href="#" class="text-duo-subtext text-2xl"><i class="fa-solid fa-store"></i></a>
+            <a href="#" onclick="openProfile()" class="text-duo-subtext text-2xl"><i class="fa-solid fa-user"></i></a>
+        </nav>
+    </main>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Einstellungen (Geheimcode) -->
+    <div id="modal-settings" class="fixed inset-0 bg-black/80 z-[60] hidden items-center justify-center p-4">
+        <div class="bg-duo-card p-8 rounded-3xl w-full max-w-sm border-2 border-[#2b3940] shadow-2xl">
+            <h2 class="text-2xl font-extrabold mb-6 text-center">Einstellungen</h2>
+            <input type="password" id="input-secret-code" placeholder="Code eingeben" class="w-full bg-duo-bg text-center text-xl font-extrabold tracking-widest p-4 rounded-xl mb-6 outline-none border-2 border-transparent focus:border-duo-green transition-colors">
+            
+            <button onclick="checkSecretCode()" class="w-full bg-duo-green text-white font-extrabold text-lg py-4 rounded-2xl btn-3d mb-4" style="--shadow-color: #46A302;">BESTÄTIGEN</button>
+            <p id="code-error" class="text-duo-red text-center font-bold text-sm hidden mb-4">Falscher Code!</p>
+            <button onclick="closeSettingsModal()" class="w-full text-duo-subtext font-bold text-lg py-2 hover:text-white transition">Schließen</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel (Wird nach Code Z4WA freigeschaltet) -->
+    <div id="modal-admin" class="fixed inset-0 bg-black/95 z-[70] hidden items-center justify-center p-4">
+        <div class="bg-duo-bg p-8 rounded-3xl w-full max-w-sm border-4 border-duo-red shadow-[0_0_30px_rgba(255,75,75,0.3)]">
+            <div class="flex items-center gap-2 text-duo-red mb-8 justify-center">
+                <i class="fa-solid fa-shield-halved text-3xl"></i>
+                <h2 class="text-2xl font-extrabold uppercase">Admin Panel</h2>
+            </div>
+            
+            <label class="text-xs font-bold text-duo-subtext mb-1 block uppercase">Benutzername</label>
+            <input type="text" id="admin-target-user" placeholder="Name eingeben..." class="w-full bg-duo-card p-4 font-bold rounded-xl outline-none mb-4 border-2 border-transparent focus:border-duo-red transition-colors">
+            
+            <label class="text-xs font-bold text-duo-subtext mb-1 block uppercase">Unendlich Herzen (Tage)</label>
+            <input type="number" id="admin-duration" value="7" min="1" class="w-full bg-duo-card p-4 font-bold rounded-xl outline-none mb-8 border-2 border-transparent focus:border-duo-red transition-colors">
+            
+            <button onclick="giveSuperStatus()" class="w-full bg-duo-red text-white font-extrabold text-lg py-4 rounded-2xl btn-3d mb-4" style="--shadow-color: #B33333;">SUPER-STATUS GEBEN</button>
+            <p id="admin-message" class="text-duo-green text-center font-bold text-sm hidden mb-4"></p>
+            <button onclick="closeAdminModal()" class="w-full text-duo-subtext font-bold text-lg py-2 hover:text-white transition">Schließen</button>
+        </div>
+    </div>
+
+    <!-- Lesson Complete Modal -->
+    <div id="modal-complete" class="fixed inset-0 bg-black/90 z-[80] hidden items-center justify-center p-4">
+        <div class="bg-duo-bg w-full max-w-sm rounded-3xl p-8 flex flex-col items-center text-center border-2 border-[#2b3940]">
+            <i class="fa-solid fa-trophy text-6xl text-duo-yellow mb-6"></i>
+            <h2 class="text-3xl font-extrabold mb-2 text-duo-yellow">Lektion geschafft!</h2>
+            <p class="text-duo-subtext font-bold mb-8">Du hast 10 XP verdient.</p>
+            
+            <div class="flex gap-4 w-full mb-8">
+                <div class="flex-1 bg-duo-card p-4 rounded-xl border-2 border-[#2b3940]">
+                    <p class="text-xs text-duo-subtext font-bold">GESAMT-XP</p>
+                    <p class="font-extrabold text-xl text-duo-yellow">10</p>
+                </div>
+                <div class="flex-1 bg-duo-card p-4 rounded-xl border-2 border-[#2b3940]">
+                    <p class="text-xs text-duo-subtext font-bold">ZEIT</p>
+                    <p class="font-extrabold text-xl text-duo-blue">1:30</p>
+                </div>
+            </div>
+
+            <button onclick="finishLesson()" class="w-full bg-duo-green text-white font-extrabold text-lg py-4 rounded-2xl btn-3d" style="--shadow-color: #46A302;">WEITER</button>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT LOGIK ================= -->
+    <script>
+        // 1. STATE (Wird im Browser gespeichert)
+        let state = JSON.parse(localStorage.getItem('codelingo_state')) || {
+            username: "Lin",
+            hearts: 5,
+            isSuper: false,
+            superUntil: null
+        };
+
+        // Quiz-Daten (Simuliert)
+        const questions = [
+            {
+                question: "Welche Sprache wird hauptsächlich für Web-Frontend-Entwicklung genutzt?",
+                options: ["Python", "JavaScript", "C++", "Java"],
+                correct: 1
+            },
+            {
+                question: "Wofür steht die Abkürzung 'HTML'?",
+                options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyper Tool Multi Language", "Home Tool Markup Language"],
+                correct: 0
+            },
+            {
+                question: "Welches Symbol wird in Python für Kommentare genutzt?",
+                options: ["//", "/*", "#", "--"],
+                correct: 2
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let selectedOption = null;
+
+        // 2. INITIALISIERUNG
+        function init() {
+            updateUI();
+            loadQuestion();
+        }
+
+        // 3. UI UPDATES (Herzen, Profile, etc.)
+        function updateUI() {
+            const now = new Date().getTime();
+            const hasInfinite = state.isSuper && state.superUntil > now;
+            
+            const heartDisplay = hasInfinite ? "∞" : state.hearts;
+            
+            // Top Bar
+            if (document.getElementById('top-hearts')) {
+                document.getElementById('top-hearts').innerText = heartDisplay;
+            }
+            
+            // Profil
+            if (document.getElementById('profile-name')) {
+                document.getElementById('profile-name').innerText = state.username;
+                document.getElementById('profile-avatar').innerText = state.username[0].toUpperCase();
+                document.getElementById('profile-hearts-text').innerText = heartDisplay;
+            }
+            
+            // Lektion
+            if (document.getElementById('lesson-hearts')) {
+                document.getElementById('lesson-hearts').innerText = heartDisplay;
+            }
+
+            // Speichern
+            localStorage.setItem('codelingo_state', JSON.stringify(state));
+        }
+
+        // 4. SCREEN NAVIGATION
+        function openProfile() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-profile').classList.add('active');
+        }
+
+        function closeProfile() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-home').classList.add('active');
+        }
+
+        function startLesson() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-lesson').classList.add('active');
+            document.getElementById('screen-lesson').style.display = 'flex'; // Flex für das Layout
+            currentQuestionIndex = 0;
+            loadQuestion();
+        }
+
+        function quitLesson() {
+            document.getElementById('screen-lesson').style.display = 'none';
+            closeProfile();
+        }
+
+        function finishLesson() {
+            document.getElementById('modal-complete').classList.add('hidden');
+            document.getElementById('modal-complete').classList.remove('flex');
+            quitLesson();
+        }
+
+        // 5. QUIZ LOGIK
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                // Lektion beendet
+                document.getElementById('modal-complete').classList.remove('hidden');
+                document.getElementById('modal-complete').classList.add('flex');
+                return;
+            }
+
+            const q = questions[currentQuestionIndex];
+            document.getElementById('question-text').innerText = q.question;
+            
+            // Fortschritt berechnen
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('lesson-progress').style.width = `${progress}%`;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            selectedOption = null;
+            const checkBtn = document.getElementById('check-btn');
+            checkBtn.disabled = true;
+            checkBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            q.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full bg-duo-card border-2 border-[#2b3940] p-4 rounded-xl font-bold text-left text-lg hover:bg-[#2b3940] transition-all flex justify-between items-center";
+                btn.innerHTML = `<span>${index + 1}. ${option}</span><span class="w-6 h-6 rounded-full border-2 border-gray-500 flex items-center justify-center text-xs" id="check-${index}"></span>`;
+                
+                btn.onclick = () => selectOption(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(index, btn) {
+            // Alle anderen deselektieren
+            document.querySelectorAll('#options-container button').forEach(b => {
+                b.classList.remove('border-duo-blue', 'bg-[#1CB0F6]/10');
+                b.classList.add('border-[#2b3940]');
+                b.querySelector('span:last-child').className = "w-6 h-6 rounded-full border-2 border-gray-500 flex items-center justify-center text-xs";
+            });
+
+            // Ausgewählten markieren
+            btn.classList.remove('border-[#2b3940]');
+            btn.classList.add('border-duo-blue', 'bg-[#1CB0F6]/10');
+            btn.querySelector('span:last-child').className = "w-6 h-6 rounded-full border-2 border-duo-blue flex items-center justify-center text-xs bg-duo-blue text-white";
+
+            selectedOption = index;
+            
+            // Check Button aktivieren
+            const checkBtn = document.getElementById('check-btn');
+            checkBtn.disabled = false;
+            checkBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function checkAnswer() {
+            const q = questions[currentQuestionIndex];
+            
+            if (selectedOption === q.correct) {
+                // Richtig
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                // Falsch
+                const now = new Date().getTime();
+                const hasInfinite = state.isSuper && state.superUntil > now;
+                
+                if (!hasInfinite) {
+                    state.hearts--;
+                    if (state.hearts <= 0) {
+                        alert("Keine Herzen mehr! Du musst warten oder den Geheimcode eingeben.");
+                        state.hearts = 5; // Reset für Prototyp
+                        quitLesson();
+                    }
+                }
+                updateUI();
+                
+                // Rote Animation / Feedback (Simuliert)
+                const btn = document.getElementById('check-btn');
+                btn.classList.add('bg-duo-red');
+                btn.innerText = "FALSCH!";
+                setTimeout(() => {
+                    btn.classList.remove('bg-duo-red');
+                    btn.innerText = "PRÜFEN";
+                }, 1000);
+            }
+        }
+
+        // 6. GEHEIMCODE & ADMIN (Z4WA)
+        function openSettingsModal() {
+            document.getElementById('modal-settings').classList.remove('hidden');
+            document.getElementById('modal-settings').classList.add('flex');
+            document.getElementById('input-secret-code').value = "";
+            document.getElementById('code-error').classList.add('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('modal-settings').classList.add('hidden');
+            document.getElementById('modal-settings').classList.remove('flex');
+        }
+
+        function checkSecretCode() {
+            const input = document.getElementById('input-secret-code').value;
+
+            if (input === "Z4WA") {
+                // Unendlich Herzen für 7 Tage
+                const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                state.isSuper = true;
+                state.superUntil = new Date().getTime() + oneWeek;
+                
+                updateUI();
+                closeSettingsModal();
+                closeProfile();
+                
+                // Admin Panel öffnen
+                document.getElementById('modal-admin').classList.remove('hidden');
+                document.getElementById('modal-admin').classList.add('flex');
+                document.getElementById('admin-message').classList.add('hidden');
+            } else {
+                document.getElementById('code-error').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('modal-admin').classList.add('hidden');
+            document.getElementById('modal-admin').classList.remove('flex');
+        }
+
+        function giveSuperStatus() {
+            const target = document.getElementById('admin-target-user').value.trim();
+            const days = parseInt(document.getElementById('admin-duration').value);
+            const msg = document.getElementById('admin-message');
+
+            if (!target || isNaN(days)) {
+                msg.innerText = "Bitte Namen und Tage eingeben!";
+                msg.className = "text-duo-red text-center font-bold text-sm block mb-4";
+                return;
+            }
+
+            // In einem echten System würde hier ein API Call kommen.
+            // Da dies ein Single-File-Prototyp ist, simulieren wir es.
+            msg.innerText = `ERFOLG! ${target} hat jetzt für ${days} Tage unendlich Herzen.`;
+            msg.className = "text-duo-green text-center font-bold text-sm block mb-4";
+            
+            // Wenn der Admin sich selbst eingibt, bekommt er es sofort
+            if (target.toLowerCase() === state.username.toLowerCase()) {
+                state.isSuper = true;
+                state.superUntil = new Date().getTime() + (days * 24 * 60 * 60 * 1000);
+                updateUI();
+            }
+            
+            document.getElementById('admin-target-user').value = "";
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+'use client';
+import { useState } from 'react';
+import { Flame, Gem, Heart, Home, Dumbbell, Trophy, ShoppingBag, User } from 'lucide-react';
+
+// Beispiel-Daten für den Lernpfad
+const pathData = [
+  { id: 1, type: 'star', status: 'completed', title: 'Grundlagen' },
+  { id: 2, type: 'book', status: 'active', title: 'Variablen & Strings' },
+  { id: 3, type: 'star', status: 'locked', title: 'Schleifen' },
+  { id: 4, type: 'chest', status: 'locked', title: 'Belohnung' },
+  { id: 5, type: 'star', status: 'locked', title: 'Funktionen' },
+];
+
+export default function HomePage() {
+  const [activeTab, setActiveTab] = useState('home');
+
+  return (
+    <div className="min-h-screen bg-[#131F24] text-white flex flex-col items-center font-sans">
+      
+      {/* Obere Leiste (Stats) */}
+      <div className="w-full max-w-md flex justify-between items-center p-4 border-b border-gray-700 bg-[#131F24] sticky top-0 z-10">
+        <div className="flex items-center text-red-500 font-bold">
+          <Flame className="w-6 h-6 mr-1" /> 5
+        </div>
+        <div className="flex items-center text-blue-400 font-bold">
+          <Gem className="w-6 h-6 mr-1" /> 2036
+        </div>
+        <div className="flex items-center text-red-500 font-bold">
+          <Heart className="w-6 h-6 mr-1" /> 5
+        </div>
+      </div>
+
+      {/* Header der Einheit */}
+      <div className="w-full max-w-md mt-6 px-4">
+        <div className="bg-[#58CC02] text-[#131F24] p-4 rounded-xl font-bold text-lg flex justify-between items-center shadow-[0_4px_0_#46a302]">
+          <div>
+            <p className="text-xs text-green-100 uppercase tracking-wider mb-1">Stufe 1, Abschnitt 1</p>
+            <p>Bestelle im Café (Lua Basics)</p>
+          </div>
+          <div className="bg-green-600 : p-2 rounded 
+-lg">
+            {/* Icon Platzhalter */}
+                               <span className="text-white '">📖</span>
+          </div>
+bg        </div>
+      </div>
+
+      {/* Der Lernpfad */}
+      <div className="flex flex-col items-center mt-12 space-y-6 pb-32 w-full max-w-md">
+        {pathData.map((node, index) => {
+          // Versetzt die Kreise leicht nach links und rechts für den Pfad-Effekt
+          const offset = index % 2 === 0 ? 'translate-x-0' : 'translate-x-12';
+          
+          return (
+            <div key={node.id} className={`relative flex flex-col items-center ${offset} transition-all`}>
+              {node.status === 'active' && (
+                <div className="absolute -top-10 bg-white text-gray-800 text-xs font-bold px-3 py-1 rounded-lg animate-bounce shadow-md">
+                  ANFANGEN
+                </div>
+              )}
+              
+              <button 
+                className={`w-20 h-20 rounded-full flex items-center justify-center shadow-[0_6px_0] transition-all active:translate-y-1 active:shadow-none
+                  ${node.status === 'completed' ? 'bg-[#58CC02] shadow-[#46a302]' : 
+                    node.status === 'active' ? 'bg-[#58CC02] shadow-[#46a302] ring-4 ring-green-900/50'-gray-600 shadow-gray-800'}`}
+                onClick={() => {
+                  if(node.status === 'active') alert(`Lektion "${node.title}" gestartet! Hier öffnet sich später das Lern-Modal.`);
+                }}
+              >
+                {node.type === 'star' && <span className="text-3xl text-white">★</span>}
+                {node.type === 'book' && <span className="text-3xl text-white">📖</span>}
+                {node.type === 'chest' && <span className="text-3xl text-gray-400">📦</span>}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Untere Navigationsleiste */}
+      <div className="w-full max-w-md fixed bottom-0 bg-[#131F24] border-t border-gray-700 flex justify-around p-4 pb-6">
+        <button onClick={() => setActiveTab('home')} className={`p-2 rounded-xl ${activeTab === 'home' ? 'bg-blue-900/30 text-blue-400' : 'text-gray-500'}`}>
+          <Home className="w-8 h-8" />
+        </button>
+        <button onClick={() => setActiveTab('practice')} className={`p-2 rounded-xl ${activeTab === 'practice' ? 'bg-blue-900/30 text-blue-400' : 'text-gray-500'}`}>
+          <Dumbbell className="w-8 h-8" />
+        </button>
+        <button onClick={() => setActiveTab('league')} className={`p-2 rounded-xl ${activeTab === 'league' ? 'bg-blue-900/30 text-blue-400' : 'text-gray-500'}`}>
+          <Trophy className="w-8 h-8" />
+        </button>
+        <button onClick={() => setActiveTab('shop')} className={`p-2 rounded-xl ${activeTab === 'shop' ? 'bg-blue-900/30 text-blue-400' : 'text-gray-500'}`}>
+          <ShoppingBag className="w-8 h-8" />
+        </button>
+        <button onClick={() => setActiveTab('profile')} className={`p-2 rounded-xl ${activeTab === 'profile' ? 'bg-blue-900/30 text-blue-400' : 'text-gray-500'}`}>
+          <User className="w-8 h-8" />
+        </button>
+      </div>
+    </div>
+  );
+}
